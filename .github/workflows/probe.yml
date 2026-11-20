@@ -9,7 +9,7 @@ jobs:
         run: |
           curl -s -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" "https://m.gifshow.com/fw/photo/3xry7mhn2ywjyqg" -o before.json
           echo "BEFORE:"; cat before.json; echo
-          python3 -c "import json; print('viewCount before =', json.load(open('before.json'))['viewCount'])"
+          python3 -c "import re; h=open('before.json').read(); m=re.search(r'\"viewCount\":\s*(\d+)', h); print('viewCount before =', m.group(1) if m else 'NOT FOUND')"
       - name: POST mutation
         run: |
           curl -s -m 30 -w "\nHTTP_STATUS:%{http_code}\n" -X POST "https://www.kuaishou.com/graphql" -H "Content-Type: application/json" -H "Origin: https://www.kuaishou.com" -H "Referer: https://www.kuaishou.com/short-video/3xry7mhn2ywjyqg" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Cookie: did=web_probe_001" --data '{"operationName":"visionTubeView","variables":{"photoId":"5220235068916084263","tubeId":""},"query":"mutation visionTubeView($photoId: String, $tubeId: String) { visionTubeView(photoId: $photoId, tubeId: $tubeId) { result } }"}'
@@ -18,4 +18,4 @@ jobs:
           sleep 60
           curl -s -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" "https://m.gifshow.com/fw/photo/3xry7mhn2ywjyqg" -o after.json
           echo "AFTER:"; cat after.json; echo
-          python3 -c "import json; print('viewCount after =', json.load(open('after.json'))['viewCount'])"
+          python3 -c "import re; h=open('after.json').read(); m=re.search(r'\"viewCount\":\s*(\d+)', h); print('viewCount after =', m.group(1) if m else 'NOT FOUND')"
