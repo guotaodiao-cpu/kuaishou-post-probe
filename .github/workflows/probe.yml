@@ -10,9 +10,14 @@ jobs:
           curl -s -A "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1" "https://m.gifshow.com/fw/photo/3xry7mhn2ywjyqg" -o before.json
           echo "BEFORE:"; cat before.json; echo
           python3 -c "import re; h=open('before.json').read(); m=re.search(r'\"viewCount\":\s*(\d+)', h); print('viewCount before =', m.group(1) if m else 'NOT FOUND')"
+      - name: Get guest session
+        run: |
+          curl -s -c cookies.txt -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://www.kuaishou.com/short-video/3xry7mhn2ywjyqg" -o page.html
+          echo "cookies:"; cat cookies.txt; echo
+          grep -o "did[^;]*" cookies.txt || echo "NO did COOKIE FOUND"
       - name: POST mutation
         run: |
-          curl -s -m 30 -w "\nHTTP_STATUS:%{http_code}\n" -X POST "https://www.kuaishou.com/graphql" -H "Content-Type: application/json" -H "Origin: https://www.kuaishou.com" -H "Referer: https://www.kuaishou.com/short-video/3xry7mhn2ywjyqg" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Cookie: did=web_probe_001" --data '{"operationName":"visionTubeView","variables":{"photoId":"5220235068916084263","tubeId":""},"query":"mutation visionTubeView($photoId: String, $tubeId: String) { visionTubeView(photoId: $photoId, tubeId: $tubeId) { result } }"}'
+          curl -s -m 30 -b cookies.txt -w "\nHTTP_STATUS:%{http_code}\n" -X POST "https://www.kuaishou.com/graphql" -H "Content-Type: application/json" -H "Origin: https://www.kuaishou.com" -H "Referer: https://www.kuaishou.com/short-video/3xry7mhn2ywjyqg" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" --data '{"operationName":"visionTubeView","variables":{"photoId":"5220235068916084263","tubeId":""},"query":"mutation visionTubeView($photoId: String, $tubeId: String) { visionTubeView(photoId: $photoId, tubeId: $tubeId) { result } }"}'
       - name: Wait and count after
         run: |
           sleep 60
